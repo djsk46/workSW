@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ino.web.authority.mapper">
+
+	<select id="selectLogin" resultType="hashMap" parameterType="hashMap">
+	SELECT * FROM USER_TABLE WHERE USER_ID=#{user_id} AND PASSWORD=#{password}
+	</select>
+	
+	<select id="selectMenuList" resultType="hashMap" parameterType="hashMap">
+    SELECT  LEVEL LV, OBJECT_NAME, GROUP_ID, GROUP_NAME, OBJECT_ID, HIGH_OBJ, DEPT 
+      FROM (SELECT m.*,o.HIGH_OBJ FROM OBJECT_TABLE o,MAPPING_TABLE m 
+             WHERE o.OBJECT_ID=m.OBJECT_ID AND m.group_id=#{group_id}) 
+     START WITH OBJECT_NAME=#{object_name}
+   CONNECT BY PRIOR OBJECT_ID=HIGH_OBJ
+
+	</select>
+	
+	
+	<select  id="selectGroupList" resultType="hashMap">
+		SELECT * FROM GROUP_TABLE
+	</select>
+	
+	<select  id="selectAuthorityList" resultType="hashMap">
+		SELECT * FROM OBJECT_TABLE
+	</select>
+	
+	<select  id="selectMappingList" resultType="hashMap" parameterType="String">
+		SELECT * FROM MAPPING_TABLE WHERE GROUP_ID=#{groupid}
+	</select>
+	
+	<insert id="insertData" parameterType="hashMap">
+		
+		 INSERT ALL
+		<foreach collection="list" item="type"  >
+           INTO MAPPING_TABLE VALUES(#{type.GROUP_ID},#{type.GROUP_NAME},#{type.OBJECT_ID},#{type.OBJECT_NAME},#{type.DEPT})
+        </foreach>
+        SELECT * FROM DUAL
+
+	</insert>
+	
+	<delete id="deleteData" parameterType="hashMap">
+	DELETE FROM MAPPING_TABLE WHERE
+		<foreach collection="list" item="type"  open="(" close=")" separator="OR">
+          OBJECT_ID= #{type.OBJECT_ID} AND GROUP_ID=#{type.GROUP_ID}
+        </foreach>
+	</delete>
+	
+	
+</mapper>

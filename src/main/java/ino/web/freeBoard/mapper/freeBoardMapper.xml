@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ino.web.freeBoard.mapper.FreeBoardMapper">
+	
+	
+	<select id="freeBoardGetList" parameterType="hashMap" resultType="hashMap"> <!-- resultType="ino.web.board.dto.BoardDto" -->
+		
+		SELECT NUM
+   		     , NAME
+    	     , TITLE
+     		 , CONTENT
+    		 , TO_CHAR(REGDATE,'YYYY/MM/DD') REGDATE
+		  FROM 
+ 		 (
+		SELECT ROW_NUMBER() OVER(ORDER BY NUM) RNUM,NUM, NAME, TITLE, CONTENT, REGDATE 
+  		  FROM FREEBOARD
+  		 WHERE 1=1
+	 <if test="COM001=='DCOM002'">
+		   AND NUM=#{search}
+	</if>
+	
+	<if test="COM001=='DCOM001'">
+		   AND TITLE LIKE '%' ||#{search}|| '%'
+	</if> 
+	
+	<if test="startDay!='' and endDay!=''">
+	AND TO_CHAR(REGDATE,'YYYYMMDD') BETWEEN #{startDay} AND #{endDay}
+	</if>
+	
+		ORDER BY LPAD( NUM, 5 ) DESC
+  	 	 ) A
+ 		 WHERE RNUM BETWEEN #{start} AND #{end}
+		
+	</select>
+	
+	<select id="selectCount" parameterType="hashMap" resultType="Integer">
+		SELECT COUNT(*) FROM FREEBOARD
+		 WHERE 1=1
+	 	<if test="COM001=='DCOM002'">
+		   AND NUM=#{search}
+		</if>
+	
+		<if test="COM001=='DCOM001'">
+		   AND TITLE LIKE '%' ||#{search}|| '%'
+		</if> 
+		
+		<if test="startDay!='' and endDay!=''">
+			AND TO_CHAR(REGDATE,'YYYYMMDD') BETWEEN #{startDay} AND #{endDay}
+		</if>
+		 ORDER BY LPAD( NUM, 5 ) DESC
+	</select>
+	
+	
+	<select id="freeBoardInsertPro" parameterType="hashMap" statementType="CALLABLE" >
+
+	  { CALL PROCEDURE1(#{title}, #{name}, #{content}, #{reg_user}, #{num1})} 
+	
+	</select>
+	
+	<select id="freeBoardDetailByNum" resultType="hashMap" parameterType="int">
+		SELECT NUM, TITLE, NAME, TO_CHAR(REGDATE,'YYYY/MM/DD') REGDATE, CONTENT FROM FREEBOARD
+		 WHERE NUM=#{num}
+	</select>
+	
+	<select id="freeBoardNewNum" resultType="int">
+		SELECT MAX(NUM)
+		  FROM FREEBOARD
+	</select>
+	
+	<select id="freeBoardModify" parameterType="hashMap">
+	
+	 { CALL PROCEDURE1(#{title}, #{name}, #{content}, #{reg_user}, #{num1})} 
+	<!-- 	UPDATE FREEBOARD
+		   SET TITLE = #{title}
+			 , CONTENT = #{content}
+	     WHERE NUM = #{num1} -->
+		
+	</select>
+	
+	<update id="freeBoardDelete" parameterType="int">
+		DELETE FROM FREEBOARD
+		 WHERE NUM = #{num}
+		
+	</update>
+	
+	
+</mapper>
